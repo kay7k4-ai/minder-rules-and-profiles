@@ -3,8 +3,6 @@ version: v1
 type: profile
 name: python-baseline
 display_name: Python Baseline
-context:
-  provider: github
 alert: "on"
 remediate: "off"
 repository:

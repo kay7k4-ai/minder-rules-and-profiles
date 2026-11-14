@@ -7,14 +7,13 @@ display_name: Type checker configured for Python repository
 short_failure_message: No type checker configuration found
 severity:
   value: medium
-context: {}
 description: |
   Checks that a Python repository has a type checker configured. The check is
   tool-agnostic: it passes if any of mypy, pyright, or pytype is present via
   pyproject.toml, a tool-specific config file, or a CI workflow step.
 
-  Remediation is only triggered when none of these are found, so existing tool
-  choices are always respected.
+  Existing tool choices are always respected; remediation only triggers when
+  none of these are found.
 guidance: |
   Add a type checker to your Python project. Common options:
 
@@ -27,18 +26,7 @@ guidance: |
 def:
   provider_traits: ["git"]
   in_entity: repository
-  rule_schema:
-    type: object
-    properties:
-      default_type_checker:
-        type: string
-        description: |
-          The type checker to configure when none is found. Used only for
-          remediation; detection always accepts any supported tool.
-        default: mypy
-        enum:
-          - mypy
-          - pyright
+  rule_schema: {}
   ingest:
     type: git
     git: {}
@@ -64,51 +52,43 @@ def:
           not file.exists("Pipfile")
         }
 
-        # mypy via pyproject.toml [tool.mypy]
-        allow if {
-          not skip
+        type_checker_found if {
           content := file.read("pyproject.toml")
           regex.match(`(?m)^\[tool\.mypy\]`, content)
         }
 
-        # mypy via dedicated config file
-        allow if {
-          not skip
+        type_checker_found if {
           file.exists("mypy.ini")
         }
 
-        allow if {
-          not skip
+        type_checker_found if {
           file.exists(".mypy.ini")
         }
 
-        # pyright via pyrightconfig.json
-        allow if {
-          not skip
+        type_checker_found if {
           file.exists("pyrightconfig.json")
         }
 
-        # pyright via pyproject.toml [tool.pyright]
-        allow if {
-          not skip
+        type_checker_found if {
           content := file.read("pyproject.toml")
           regex.match(`(?m)^\[tool\.pyright\]`, content)
         }
 
-        # pytype via pyproject.toml [tool.pytype]
-        allow if {
-          not skip
+        type_checker_found if {
           content := file.read("pyproject.toml")
           regex.match(`(?m)^\[tool\.pytype\]`, content)
         }
 
-        # type checker present in a GitHub Actions workflow
         # file.ls returns full paths; read f directly
-        allow if {
-          not skip
+        type_checker_found if {
           some f in file.ls(".github/workflows")
           workflow := file.read(f)
           regex.match(`(mypy|pyright|pytype)`, workflow)
+        }
+
+        allow if {
+          not skip
+          type_checker_found
         }
 
         message := "No type checker (mypy, pyright, or pytype) configuration found" if {
@@ -124,7 +104,7 @@ def:
 
         No type checker configuration was found in this repository. This PR
         adds a minimal `mypy.ini` to get started. Replace it with your
-        preferred tool if you'd like — Minder detects mypy, pyright, and
+        preferred tool if you'd like -- Minder detects mypy, pyright, and
         pytype.
       contents:
         - path: "mypy.ini"

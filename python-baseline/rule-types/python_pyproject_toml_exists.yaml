@@ -7,7 +7,6 @@ display_name: Python project has a pyproject.toml
 short_failure_message: pyproject.toml is missing
 severity:
   value: low
-context: {}
 description: |
   Checks that a Python repository contains a pyproject.toml file. This is the
   modern standard for Python project configuration (PEP 517/518) and is
@@ -16,7 +15,7 @@ description: |
   The rule is skipped for repositories that show no signs of being a Python
   project (no requirements.txt, setup.py, setup.cfg, or Pipfile). Note that
   unlike the other Python rules, pyproject.toml itself is not in the skip
-  condition — that is intentional, as it is the file this rule enforces.
+  condition -- that is intentional, as it is the file this rule enforces.
 guidance: |
   Add a pyproject.toml to your Python project. At minimum it should contain:
 

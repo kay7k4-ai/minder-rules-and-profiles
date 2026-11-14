@@ -19,11 +19,19 @@ being a Python project.
 
 ## Installation
 
+Apply directly from the GitHub repository (no local clone needed):
+
+```bash
+minder apply --git https://github.com/mindersec/minder-rules-and-profiles?python-baseline
+```
+
+Or, if you have a local clone:
+
 ```bash
 minder apply -f path/to/python-baseline
 ```
 
-This applies both the rule types and the profile in a single step.
+Both commands apply the rule types and the profile in a single step.
 
-To enable automated remediation (PRs to add missing config files), set
-`remediate: "on"` in `profiles/python-baseline.yaml` before applying.
+To enable automated remediation (PRs to add missing config files), edit
+`profiles/python-baseline.yaml` and set `remediate: "on"` before applying.

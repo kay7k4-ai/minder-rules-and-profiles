@@ -7,7 +7,6 @@ display_name: Linter configured for Python repository
 short_failure_message: No linter configuration found
 severity:
   value: medium
-context: {}
 description: |
   Checks that a Python repository has a linter configured. The check is
   tool-agnostic: it passes if any of ruff, flake8, or pylint is present
@@ -26,18 +25,7 @@ guidance: |
 def:
   provider_traits: ["git"]
   in_entity: repository
-  rule_schema:
-    type: object
-    properties:
-      default_linter:
-        type: string
-        description: |
-          The linter to configure when none is found. Used only for
-          remediation; detection always accepts any supported tool.
-        default: ruff
-        enum:
-          - ruff
-          - flake8
+  rule_schema: {}
   ingest:
     type: git
     git: {}
@@ -63,58 +51,49 @@ def:
           not file.exists("Pipfile")
         }
 
-        # ruff via pyproject.toml [tool.ruff]
-        allow if {
-          not skip
+        linter_found if {
           content := file.read("pyproject.toml")
           regex.match(`(?m)^\[tool\.ruff`, content)
         }
 
-        # ruff via dedicated config
-        allow if {
-          not skip
+        linter_found if {
           file.exists("ruff.toml")
         }
 
-        allow if {
-          not skip
+        linter_found if {
           file.exists(".ruff.toml")
         }
 
-        # flake8 via .flake8
-        allow if {
-          not skip
+        linter_found if {
           file.exists(".flake8")
         }
 
-        # flake8 via setup.cfg [flake8] — guard existence before reading
-        allow if {
-          not skip
+        # guard existence before reading
+        linter_found if {
           file.exists("setup.cfg")
           content := file.read("setup.cfg")
           regex.match(`(?m)^\[flake8\]`, content)
         }
 
-        # pylint via pyproject.toml [tool.pylint]
-        allow if {
-          not skip
+        linter_found if {
           content := file.read("pyproject.toml")
           regex.match(`(?m)^\[tool\.pylint`, content)
         }
 
-        # pylint via .pylintrc
-        allow if {
-          not skip
+        linter_found if {
           file.exists(".pylintrc")
         }
 
-        # linter present in a GitHub Actions workflow
         # file.ls returns full paths; read f directly
-        allow if {
-          not skip
+        linter_found if {
           some f in file.ls(".github/workflows")
           workflow := file.read(f)
           regex.match(`(ruff|flake8|pylint)`, workflow)
+        }
+
+        allow if {
+          not skip
+          linter_found
         }
 
         message := "No linter (ruff, flake8, or pylint) configuration found" if {
@@ -130,7 +109,7 @@ def:
 
         No linter configuration was found in this repository. This PR adds a
         minimal `ruff.toml` to get started. Replace it with your preferred
-        tool if you'd like — Minder detects ruff, flake8, and pylint.
+        tool if you'd like -- Minder detects ruff, flake8, and pylint.
       contents:
         - path: "ruff.toml"
           action: replace

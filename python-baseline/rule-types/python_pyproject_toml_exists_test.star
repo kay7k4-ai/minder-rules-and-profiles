@@ -7,7 +7,7 @@ def FAIL(res):
     assert.true(res["status"] in ("fail", "error"))
 
 def SKIP(res):
-    assert.eq(res["status"], "skipped")
+    assert.eq(res["status"], "skip")
 
 def test_pyproject_toml_present():
     res = eval(
